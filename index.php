@@ -16,8 +16,8 @@ require_once 'common.php';
   </head>
   <body>
     <div class="well play-buttons">
-      <h1 id="">
-        <?php print web_mpd_current(); ?>
+      <h1 id="current-title">
+        <?php web_mpd_current(); ?>
       </h1>
       <div class="btn-group">
         <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-backward"></span> Previous</button>
@@ -26,6 +26,7 @@ require_once 'common.php';
         <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-stop"></span> Stop</button>
         <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-forward"></span> Next</button>
       </div>
+      <input id="volume" type="range" value="<?php print web_mpd_volume_get(); ?>" min="0" max="100" step="1">
     </div>
   </body>
 </html>

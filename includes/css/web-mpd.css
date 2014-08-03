@@ -1,3 +1,7 @@
 .play-buttons {
   text-align: center;
 }
+
+#volume {
+  margin-top: 20px;
+}

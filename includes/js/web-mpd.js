@@ -1,8 +1,8 @@
 $(document).ready(function() {
 
-  var command = '';
+  // Handle panel buttons.
   $('.play-buttons button').click(function() {
-    command = $(this).find('span').attr('class').split('-')[1];
+    var command = $(this).find('span').attr('class').split('-')[1];
 
     if (command == 'backward') {
       command = 'prev';
@@ -12,5 +12,25 @@ $(document).ready(function() {
     }
 
     $.post('/backend.php', {command: command});
+    webMpdTitleUpdate();
   });
+
+  // Handle volume change.
+  $('#volume').change(function() {
+    $.post('/backend.php', {volume: $(this).val()});
+  });
+
+  // Auto-updating current title every 5 sec.
+  setInterval(function() {
+    webMpdTitleUpdate();
+  }, 5000);
 });
+
+/**
+ * Get title of current track.
+ */
+function webMpdTitleUpdate() {
+  $.get('/backend.php?current', function(data) {
+    $('#current-title').html(data);
+  });
+};
