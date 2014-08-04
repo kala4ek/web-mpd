@@ -1,7 +1,7 @@
 $(document).ready(function() {
 
   // Handle panel buttons.
-  $('.play-buttons button').click(function() {
+  $('.play-buttons .btn-action').click(function() {
     var command = $(this).find('span').attr('class').split('-')[1];
 
     if (command == 'backward') {
@@ -17,7 +17,13 @@ $(document).ready(function() {
 
   // Handle volume change.
   $('#volume').change(function() {
-    $.post('/backend.php', {volume: $(this).val()});
+    $.post('/backend.php', {command: 'volume', value: $(this).val()});
+  });
+
+  $('#repeat, #random, #single').click(function() {
+    var $this = $(this);
+    $this.toggleClass('active');
+    $.post('/backend.php', {command: $this.attr('id')});
   });
 
   // Auto-updating current title every 5 sec.

@@ -5,10 +5,9 @@
  */
 function web_mpd_post_handle() {
   if (!empty($_POST['command'])) {
-    web_mpd_command($_POST['command']);
-  }
-  elseif (!empty($_POST['volume'])) {
-    web_mpd_command('volume ' . $_POST['volume']);
+    !empty($_POST['value'])
+      ? web_mpd_command($_POST['command'], $_POST['value'])
+      : web_mpd_command($_POST['command']);
   }
 }
 
@@ -27,8 +26,8 @@ function web_mpd_get_handle() {
 /**
  * Execute specific mpc command.
  */
-function web_mpd_command($command) {
-  return system('mpc ' . $command);
+function web_mpd_command($command, $arg = '') {
+  return system("mpc $command $arg");
 }
 
 /**
@@ -47,4 +46,38 @@ function web_mpd_volume_get() {
   ob_clean();
 
   return trim(substr($volume, 7), '% ');
+}
+
+/**
+ * Get mpd status.
+ */
+function web_mpd_status() {
+  ob_start();
+  $status = system('mpc status');
+  ob_clean();
+
+  return $status;
+}
+
+/**
+ * Check if repeat is enabled.
+ */
+function web_mpd_is_repeat() {
+  return strpos(web_mpd_status(), 'repeat: on') === FALSE ? '' : 'active';
+}
+
+
+/**
+ * Check if single is enabled.
+ */
+function web_mpd_is_single() {
+  return strpos(web_mpd_status(), 'single: on') === FALSE ? '' : 'active';
+}
+
+
+/**
+ * Check if random is enabled.
+ */
+function web_mpd_is_random() {
+  return strpos(web_mpd_status(), 'random: on') === FALSE ? '' : 'active';
 }

@@ -12,7 +12,6 @@ require_once 'common.php';
     <link rel="stylesheet" href="/includes/css/web-mpd.css">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="/includes/js/web-mpd.js"></script>
-<!--    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">-->
   </head>
   <body>
     <div class="well play-buttons">
@@ -20,11 +19,14 @@ require_once 'common.php';
         <?php web_mpd_current(); ?>
       </h1>
       <div class="btn-group">
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-backward"></span> Previous</button>
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-play"></span> Play</button>
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-pause"></span> Pause</button>
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-stop"></span> Stop</button>
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-forward"></span> Next</button>
+        <button type="button" class="btn btn-default btn-action"><span class="glyphicon glyphicon-backward"></span> Previous</button>
+        <button type="button" class="btn btn-default btn-action"><span class="glyphicon glyphicon-play"></span> Play</button>
+        <button type="button" class="btn btn-default btn-action"><span class="glyphicon glyphicon-pause"></span> Pause</button>
+        <button type="button" class="btn btn-default btn-action"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+        <button type="button" class="btn btn-default btn-action"><span class="glyphicon glyphicon-forward"></span> Next</button>
+        <button id="repeat" type="button" class="btn btn-default <?php print web_mpd_is_repeat(); ?>"><span class="glyphicon glyphicon-refresh"></span></button>
+        <button id="single" type="button" class="btn btn-default <?php print web_mpd_is_single(); ?>"><span class="glyphicon glyphicon-repeat"></span></button>
+        <button id="random" type="button" class="btn btn-default <?php print web_mpd_is_random(); ?>"><span class="glyphicon glyphicon-random"></span></button>
       </div>
       <input id="volume" type="range" value="<?php print web_mpd_volume_get(); ?>" min="0" max="100" step="1">
     </div>
