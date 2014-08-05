@@ -39,6 +39,7 @@ $(document).ready(function() {
     else {
       $.post('/backend.php', {command: 'play', value: $this.data('id')});
       $this.find('span.glyphicon').removeClass('glyphicon-play');
+      $this.closest('ul').find('.glyphicon-pause').removeClass('glyphicon-pause').addClass('glyphicon-play');
       $this.find('span.glyphicon').addClass('glyphicon-pause');
     }
   });
