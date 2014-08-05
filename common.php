@@ -39,14 +39,18 @@ function web_mpd_render_playlist() {
     $already = FALSE;
 
     foreach ($playlist as $id => $track) {
-      $list[$id] = '<li class="list-group-item">';
+
       if (!$already && $track == web_mpd_current()) {
         $already = TRUE;
-        $list[$id] .= '<div class="btn-group btn-group-xs"><button data-id="' . $id . '" type="button" class="btn btn-default btn-playlist"><span class="glyphicon glyphicon-pause"></span></button></div>';
+        $class = 'active';
+        $button = '<div class="btn-group btn-group-xs"><button data-id="' . $id . '" type="button" class="btn btn-default btn-playlist"><span class="glyphicon glyphicon-pause"></span></button></div>';
       }
       else {
-        $list[$id] .= '<div class="btn-group btn-group-xs"><button data-id="' . $id . '" type="button" class="btn btn-default btn-playlist"><span class="glyphicon glyphicon-play"></span></button></div>';
+        $class = '';
+        $button = '<div class="btn-group btn-group-xs"><button data-id="' . $id . '" type="button" class="btn btn-default btn-playlist"><span class="glyphicon glyphicon-play"></span></button></div>';
       }
+      $list[$id] = '<li class="list-group-item ' . $class . '">';
+      $list[$id] .= $button;
       $list[$id] .= $track;
       $list[$id] .= '</li>';
     }
