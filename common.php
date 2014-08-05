@@ -1,6 +1,26 @@
 <?php
 
 /**
+ * Render all css files.
+ */
+function web_mpd_render_css() {
+  $css[] = '<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">';
+  $css[] = '<link rel="stylesheet" href="/includes/css/web-mpd.css">';
+
+  return implode(PHP_EOL, $css) . PHP_EOL;
+}
+
+/**
+ * Render all js files.
+ */
+function web_mpd_render_js() {
+  $js[] = '<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>';
+  $js[] = '<script src="/includes/js/web-mpd.js"></script>';
+
+  return implode(PHP_EOL, $js) . PHP_EOL;
+}
+
+/**
  * Callback for handle POST requests.
  */
 function web_mpd_post_handle() {
@@ -12,14 +32,56 @@ function web_mpd_post_handle() {
 }
 
 /**
+ * Render playlist.
+ */
+function web_mpd_render_playlist() {
+  if ($playlist = web_mpd_playlist()) {
+    $already = FALSE;
+
+    foreach ($playlist as $id => $track) {
+      $list[$id] = '<li class="list-group-item">';
+      if (!$already && $track == web_mpd_current()) {
+        $already = TRUE;
+        $list[$id] .= '<div class="btn-group btn-group-xs"><button data-id="' . $id . '" type="button" class="btn btn-default btn-playlist"><span class="glyphicon glyphicon-pause"></span></button></div>';
+      }
+      else {
+        $list[$id] .= '<div class="btn-group btn-group-xs"><button data-id="' . $id . '" type="button" class="btn btn-default btn-playlist"><span class="glyphicon glyphicon-play"></span></button></div>';
+      }
+      $list[$id] .= $track;
+      $list[$id] .= '</li>';
+    }
+
+    return implode(PHP_EOL, $list) . PHP_EOL;
+  }
+
+  return '';
+}
+
+/**
+ * Render control buttons.
+ */
+function web_mpd_render_buttons() {
+  $buttons = array(
+    'backward' => 'Previous',
+    'play' => 'Play',
+    'pause' => 'Pause',
+    'stop' => 'Stop',
+    'forward' => 'Next',
+  );
+
+  foreach ($buttons as $class => $text) {
+    $list[] = "<button type='button' class='btn btn-default btn-action'><span class='glyphicon glyphicon-$class'></span> $text</button>";
+  }
+
+  return implode(PHP_EOL, $list) . PHP_EOL;
+}
+
+/**
  * Callback for handle GET requests.
  */
 function web_mpd_get_handle() {
   if (isset($_GET['current'])) {
-    web_mpd_current();
-  }
-  elseif (isset($_GET['volume'])) {
-    web_mpd_volume_get();
+    print web_mpd_current();
   }
 }
 
@@ -27,7 +89,11 @@ function web_mpd_get_handle() {
  * Execute specific mpc command.
  */
 function web_mpd_command($command, $arg = '') {
-  return system("mpc $command $arg");
+  ob_start();
+  $result = system("mpc $command $arg");
+  ob_clean();
+
+  return $result;
 }
 
 /**
@@ -53,7 +119,7 @@ function web_mpd_volume_get() {
  */
 function web_mpd_status() {
   ob_start();
-  $status = system('mpc status');
+  $status = web_mpd_command('status');
   ob_clean();
 
   return $status;
@@ -80,4 +146,22 @@ function web_mpd_is_single() {
  */
 function web_mpd_is_random() {
   return strpos(web_mpd_status(), 'random: on') === FALSE ? '' : 'active';
+}
+
+/**
+ * Get playlist.
+ *
+ * @return array.
+ */
+function web_mpd_playlist() {
+  $list = array();
+  exec('mpc playlist', $list);
+
+  $count = count($list);
+  for($i=$count; $i>0; $i--){
+    $list[$i] = $list[$i-1];
+  }
+  unset($list[0]);
+
+  return $list;
 }

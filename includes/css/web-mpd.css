@@ -1,7 +1,20 @@
+body {
+  width: 960px;
+  margin: 20px auto 0 auto;
+}
+
 .play-buttons {
   text-align: center;
 }
 
 #volume {
   margin-top: 20px;
+}
+
+.list-group {
+  margin-bottom: 0;
+}
+
+button.btn-playlist {
+  margin-right: 5px;
 }
