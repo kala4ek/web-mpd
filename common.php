@@ -1,5 +1,8 @@
 <?php
 
+// Include settings file.
+require_once 'settings.php';
+
 /**
  * Render all css files.
  */
