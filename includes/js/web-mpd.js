@@ -1,5 +1,9 @@
 $(document).ready(function() {
 
+  // Set height to playlist.
+  var height = $(window).height() - $('.play-buttons').height() - 140;
+  $('.playlist').height(height);
+
   // Handle panel buttons.
   $('.play-buttons .btn-action').click(function() {
     var command = $(this).find('span').attr('class').split('-')[1];
@@ -12,7 +16,8 @@ $(document).ready(function() {
     }
 
     $.post('/backend.php', {command: command});
-    setTimeout('webMpdTitleUpdate()', 500);
+    setTimeout('webMpdUpdateTitle()', 500);
+    setTimeout('webMpdUpdatePlaylist()', 500);
   });
 
   // Handle volume change.
@@ -30,31 +35,53 @@ $(document).ready(function() {
   // Handle click at playlist buttons.
   $('.playlist button').click(function() {
     var $this = $(this);
+    var $ul = $this.closest('ul');
+    var $spanGlyphicon = $this.find('span.glyphicon');
 
-    if ($this.find('span.glyphicon').hasClass('glyphicon-pause')) {
+    if ($spanGlyphicon.hasClass('glyphicon-pause')) {
       $.post('/backend.php', {command: 'pause'});
-      $this.find('span.glyphicon').removeClass('glyphicon-pause');
-      $this.find('span.glyphicon').addClass('glyphicon-play');
+      $spanGlyphicon.removeClass('glyphicon-pause').addClass('glyphicon-play');
+      $this.closest('li').removeClass('active');
     }
     else {
       $.post('/backend.php', {command: 'play', value: $this.data('id')});
-      $this.find('span.glyphicon').removeClass('glyphicon-play');
-      $this.closest('ul').find('.glyphicon-pause').removeClass('glyphicon-pause').addClass('glyphicon-play');
-      $this.find('span.glyphicon').addClass('glyphicon-pause');
+      $spanGlyphicon.removeClass('glyphicon-play').addClass('glyphicon-pause');
+      $ul.find('li.active').removeClass('active');
+      $ul.find('.glyphicon-pause').removeClass('glyphicon-pause').addClass('glyphicon-play');
+      $this.closest('li').addClass('active');
     }
+
+    setTimeout('webMpdUpdateTitle()', 500);
+    setTimeout('webMpdUpdatePlaylist()', 500);
   });
 
-  // Auto-updating current title every 5 sec.
+  // Auto-updating current title and playlist every 5 sec.
   setInterval(function() {
-    webMpdTitleUpdate();
+    webMpdUpdateTitle();
+    webMpdUpdatePlaylist();
   }, 5000);
 });
 
 /**
- * Get title of current track.
+ * Update title of current track.
  */
-function webMpdTitleUpdate() {
+function webMpdUpdateTitle() {
   $.get('/backend.php?current', function(data) {
     $('#current-title').html(data);
   });
-};
+}
+
+/**
+ * Update playlist by current track.
+ */
+function webMpdUpdatePlaylist() {
+  $.get('/backend.php?current_id', function(data) {
+    var $oldActive = $('.playlist ul li.active');
+    $oldActive.removeClass('active');
+    $oldActive.find('button span').removeClass('glyphicon-pause').addClass('glyphicon-play');
+
+    var $newActive = $('button[data-id="' + data + '"]');
+    $newActive.find('span').removeClass('glyphicon-play').addClass('glyphicon-pause');
+    $newActive.closest('li').addClass('active');
+  });
+}

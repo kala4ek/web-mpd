@@ -32,6 +32,18 @@ function web_mpd_post_handle() {
 }
 
 /**
+ * Callback for handle GET requests.
+ */
+function web_mpd_get_handle() {
+  if (isset($_GET['current'])) {
+    print web_mpd_current();
+  }
+  if (isset($_GET['current_id'])) {
+    print web_mpd_current_id();
+  }
+}
+
+/**
  * Render playlist.
  */
 function web_mpd_render_playlist() {
@@ -81,23 +93,13 @@ function web_mpd_render_buttons() {
 }
 
 /**
- * Callback for handle GET requests.
- */
-function web_mpd_get_handle() {
-  if (isset($_GET['current'])) {
-    print web_mpd_current();
-  }
-}
-
-/**
  * Execute specific mpc command.
  */
 function web_mpd_command($command, $arg = '') {
-  ob_start();
-  $result = system("mpc $command $arg");
-  ob_clean();
+  $result = array();
+  exec("mpc $command $arg", $result);
 
-  return $result;
+  return implode(PHP_EOL, $result);
 }
 
 /**
@@ -111,9 +113,7 @@ function web_mpd_current() {
  * Get current volume.
  */
 function web_mpd_volume_get() {
-  ob_start();
   $volume = web_mpd_command('volume');
-  ob_clean();
 
   return trim(substr($volume, 7), '% ');
 }
@@ -122,11 +122,7 @@ function web_mpd_volume_get() {
  * Get mpd status.
  */
 function web_mpd_status() {
-  ob_start();
-  $status = web_mpd_command('status');
-  ob_clean();
-
-  return $status;
+  return web_mpd_command('status');
 }
 
 /**
@@ -158,8 +154,8 @@ function web_mpd_is_random() {
  * @return array.
  */
 function web_mpd_playlist() {
-  $list = array();
-  exec('mpc playlist', $list);
+  $list = web_mpd_command('playlist');
+  $list = explode(PHP_EOL, $list);
 
   $count = count($list);
   for($i=$count; $i>0; $i--){
@@ -168,4 +164,15 @@ function web_mpd_playlist() {
   unset($list[0]);
 
   return $list;
+}
+
+/**
+ * Get current track id.
+ */
+function web_mpd_current_id() {
+  $status = web_mpd_status();
+  preg_match('/#[0-9]*\/[0-9]*/', $status, $matches);
+  $track_info = reset(explode('/', trim(reset($matches), '#')));
+
+  return $track_info;
 }
