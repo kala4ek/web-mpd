@@ -1,7 +1,7 @@
 $(document).ready(function() {
 
   // Set height to playlist.
-  var height = $(window).height() - $('.play-buttons').height() - 140;
+  var height = $(window).height() - $('.play-buttons').height() - 162;
   $('.playlist').height(height);
 
   // Handle panel buttons.
@@ -60,6 +60,15 @@ $(document).ready(function() {
     webMpdUpdateTitle();
     webMpdUpdatePlaylist();
   }, 5000);
+
+  // Upload files.
+  $('#uploader').JSAjaxFileUploader({
+    uploadUrl: '/backend.php',
+    autoSubmit: false,
+    uploadTest: 'Upload',
+    inputText: 'Select your best music...',
+    allowExt: 'mp3'
+  });
 });
 
 /**

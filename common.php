@@ -8,6 +8,7 @@ require_once 'settings.php';
  */
 function web_mpd_render_css() {
   $css[] = '<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">';
+  $css[] = '<link rel="stylesheet" href="/includes/css/JQuery.JSAjaxFileUploader.css" >';
   $css[] = '<link rel="stylesheet" href="/includes/css/web-mpd.css">';
 
   return implode(PHP_EOL, $css) . PHP_EOL;
@@ -18,9 +19,25 @@ function web_mpd_render_css() {
  */
 function web_mpd_render_js() {
   $js[] = '<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>';
+  $js[] = '<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>';
+  $js[] = '<script src="/includes/js/JQuery.JSAjaxFileUploader.min.js"></script>';
   $js[] = '<script src="/includes/js/web-mpd.js"></script>';
 
   return implode(PHP_EOL, $js) . PHP_EOL;
+}
+
+/**
+ * Render additional head tags files.
+ */
+function web_mpd_render_metatag() {
+  $meta[] = '<link rel="shortcut icon" href="/includes/images/favicon.ico" type="image/x-icon">';
+  $meta[] = '<link rel="icon" href="/includes/images/favicon.ico" type="image/x-icon">';
+  $meta[] = '<link rel="apple-touch-icon" href="/includes/images/touch-icon-iphone.jpg">';
+  $meta[] = '<link rel="apple-touch-icon" sizes="76x76" href="/includes/images/touch-icon-ipad.jpg">';
+  $meta[] = '<link rel="apple-touch-icon" sizes="120x120" href="/includes/images/touch-icon-iphone-retina.jpg">';
+  $meta[] = '<link rel="apple-touch-icon" sizes="152x152" href="/includes/images/touch-icon-ipad-retina.jpg">';
+
+  return implode(PHP_EOL, $meta) . PHP_EOL;
 }
 
 /**
@@ -39,7 +56,7 @@ function web_mpd_post_handle() {
  */
 function web_mpd_get_handle() {
   if (isset($_GET['current'])) {
-    print web_mpd_current();
+    print web_mpd_current() . ' (#' . web_mpd_current_track_state() . ')';
   }
   if (isset($_GET['current_id'])) {
     print web_mpd_current_id();
@@ -47,10 +64,41 @@ function web_mpd_get_handle() {
 }
 
 /**
+ * Callback for handle FILE requests.
+ */
+function web_mpd_files_handle() {
+  global $conf;
+
+  // Handle errors.
+  switch ($_FILES['file']['error']) {
+    case UPLOAD_ERR_OK:
+      break;
+
+    case UPLOAD_ERR_NO_FILE:
+      throw new RuntimeException('No file sent.');
+
+    case UPLOAD_ERR_INI_SIZE:
+    case UPLOAD_ERR_FORM_SIZE:
+      throw new RuntimeException('Exceeded filesize limit.');
+
+    default:
+      throw new RuntimeException('Unknown errors.');
+  }
+
+  // Save file into music directory and update playlist
+  move_uploaded_file($_FILES['file']['tmp_name'], $conf['music_path'] . '/' . $_FILES['file']['name']);
+  sleep(1);
+  web_mpd_command('clear');
+  web_mpd_command('update');
+  web_mpd_command('ls', '| mpc add');
+}
+
+/**
  * Render playlist.
  */
 function web_mpd_render_playlist() {
-  if ($playlist = web_mpd_playlist()) {
+  $playlist = web_mpd_playlist();
+  if ($playlist[1]) {
     $already = FALSE;
 
     foreach ($playlist as $id => $track) {
@@ -110,6 +158,17 @@ function web_mpd_command($command, $arg = '') {
  */
 function web_mpd_current() {
   return web_mpd_command('current');
+}
+
+/**
+ * Get current track state (43/152).
+ */
+function web_mpd_current_track_state() {
+  $status = web_mpd_status();
+  preg_match('/#[0-9]*\/[0-9]*/', $status, $matches);
+  $track_info = trim(reset($matches), '#');
+
+  return $track_info;
 }
 
 /**
@@ -173,9 +232,7 @@ function web_mpd_playlist() {
  * Get current track id.
  */
 function web_mpd_current_id() {
-  $status = web_mpd_status();
-  preg_match('/#[0-9]*\/[0-9]*/', $status, $matches);
-  $track_info = reset(explode('/', trim(reset($matches), '#')));
+  $track_info = reset(explode('/', web_mpd_current_track_state()));
 
   return $track_info;
 }

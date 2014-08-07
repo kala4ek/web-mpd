@@ -7,6 +7,10 @@ body {
   text-align: center;
 }
 
+.additional-buttons {
+  text-align: right;
+}
+
 #volume {
   margin-top: 20px;
 }
