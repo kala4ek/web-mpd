@@ -49,6 +49,9 @@ function web_mpd_post_handle() {
       ? web_mpd_command($_POST['command'], $_POST['value'])
       : web_mpd_command($_POST['command']);
   }
+  elseif (!empty($_POST['upload_url'])) {
+    web_mpd_upload_url($_POST['upload_url']);
+  }
 }
 
 /**
@@ -88,9 +91,20 @@ function web_mpd_files_handle() {
   // Save file into music directory and update playlist
   move_uploaded_file($_FILES['file']['tmp_name'], $conf['music_path'] . '/' . $_FILES['file']['name']);
   sleep(1);
-  web_mpd_command('clear');
-  web_mpd_command('update');
-  web_mpd_command('ls', '| mpc add');
+  web_mpd_update_playlist();
+}
+
+/**
+ * Upload file by url.
+ */
+function web_mpd_upload_url($url) {
+  global $conf;
+
+  if ($data = file_get_contents($url)) {
+    file_put_contents($conf['music_path'] . '/' . time() . '.mp3', $data);
+    sleep(1);
+    web_mpd_update_playlist();
+  }
 }
 
 /**
@@ -115,6 +129,7 @@ function web_mpd_render_playlist() {
       $list[$id] = '<li class="list-group-item ' . $class . '">';
       $list[$id] .= $button;
       $list[$id] .= $track;
+      $list[$id] .= '<button data-id="' . $id . '" type="button" class="btn btn-default btn-remove"><span class="glyphicon glyphicon-remove"></span></button>';
       $list[$id] .= '</li>';
     }
 
@@ -235,4 +250,13 @@ function web_mpd_current_id() {
   $track_info = reset(explode('/', web_mpd_current_track_state()));
 
   return $track_info;
+}
+
+/**
+ * Add all tracks to playlist.
+ */
+function web_mpd_update_playlist() {
+  web_mpd_command('clear');
+  web_mpd_command('update');
+  web_mpd_command('ls', '| mpc add');
 }

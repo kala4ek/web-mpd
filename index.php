@@ -46,7 +46,19 @@ require_once 'common.php';
             <h4 class="modal-title" id="myModalLabel">Upload music</h4>
           </div>
           <div class="modal-body">
-            <div id="uploader"></div>
+            <ul class="nav nav-tabs" role="tablist">
+              <li class="active"><a href="#by-file" role="tab" data-toggle="tab">By file</a></li>
+              <li><a href="#by-url" role="tab" data-toggle="tab">By url</a></li>
+            </ul>
+            <div class="tab-content">
+              <div class="tab-pane active" id="by-file">
+                <div id="uploader"></div>
+              </div>
+              <div class="tab-pane" id="by-url">
+                <input type="text" class="form-control" placeholder="Enter url to a file...">
+                <input type="submit" class="btn btn-primary" value="Upload">
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Close</button>

@@ -36,3 +36,22 @@ button.btn-playlist {
 .well {
   padding: 20px;
 }
+
+.tab-pane {
+  margin-top: 20px;
+}
+
+input.form-control {
+  display: inline-block;
+  width: auto;
+}
+
+#by-url input[type='submit'] {
+  margin-top: -3px;
+}
+
+.btn-remove {
+  padding: 1px 5px;
+  margin: 0;
+  float: right;
+}

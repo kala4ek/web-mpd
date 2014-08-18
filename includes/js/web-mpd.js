@@ -33,7 +33,7 @@ $(document).ready(function() {
   });
 
   // Handle click at playlist buttons.
-  $('.playlist button').click(function() {
+  $('.btn-playlist').click(function() {
     var $this = $(this);
     var $ul = $this.closest('ul');
     var $spanGlyphicon = $this.find('span.glyphicon');
@@ -61,13 +61,32 @@ $(document).ready(function() {
     webMpdUpdatePlaylist();
   }, 5000);
 
-  // Upload files.
+  // Upload music by files.
   $('#uploader').JSAjaxFileUploader({
     uploadUrl: '/backend.php',
     autoSubmit: false,
     uploadTest: 'Upload',
     inputText: 'Select your best music...',
     allowExt: 'mp3'
+  });
+
+  // Upload music by url.
+  $('#by-url input[type="submit"]').click(function(e) {
+    e.preventDefault();
+    var $input = $(this).closest('div').find('input[type="text"]');
+    var url = $input.val();
+
+    $.post('/backend.php', {upload_url: url}, function() {
+      alert('Uploaded');
+      $input.val('');
+    });
+  });
+
+  // Delete track from playlist.
+  $('.btn-remove').click(function() {
+    var $this = $(this);
+    $.post('/backend.php', {command: 'del', value: $this.data('id')});
+    $this.closest('li').remove();
   });
 });
 
