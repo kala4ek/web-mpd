@@ -25,13 +25,18 @@ require_once 'common.php';
         </h1>
         <div class="btn-group">
           <?php print web_mpd_render_buttons(); ?>
-          <button id="repeat" type="button" class="btn btn-default <?php print web_mpd_is_repeat(); ?>"><span class="glyphicon glyphicon-refresh"></span></button>
-          <button id="single" type="button" class="btn btn-default <?php print web_mpd_is_single(); ?>"><span class="glyphicon glyphicon-repeat"></span></button>
-          <button id="random" type="button" class="btn btn-default <?php print web_mpd_is_random(); ?>"><span class="glyphicon glyphicon-random"></span></button>
+          <button id="repeat" type="button" class="btn btn-default <?php print web_mpd_is_repeat(); ?>" title="Loop"><span class="glyphicon glyphicon-refresh"></span></button>
+          <button id="single" type="button" class="btn btn-default <?php print web_mpd_is_single(); ?>" title="Repeat"><span class="glyphicon glyphicon-repeat"></span></button>
+          <button id="random" type="button" class="btn btn-default <?php print web_mpd_is_random(); ?>" title="Random"><span class="glyphicon glyphicon-random"></span></button>
+          <button id="mute" type="button" class="btn btn-default <?php print web_mpd_is_mute(); ?>" title="Random"><span class="glyphicon glyphicon-volume-off"></span></button>
         </div>
-        <input id="volume" type="range" value="<?php print web_mpd_volume_get(); ?>" min="0" max="100" step="1">
+        <div class="range-inputs">
+          <input id="seek" type="range" value="<?php print web_mpd_seek_get('current'); ?>" min="0" max="<?php print web_mpd_seek_get('total'); ?>" step="1">
+          <input id="volume" type="range" value="<?php print web_mpd_volume_get(); ?>" min="0" max="100" step="1">
+        </div>
       </div>
     </div>
+
     <div class="well playlist">
       <ul class="list-group">
         <?php print web_mpd_render_playlist(); ?>

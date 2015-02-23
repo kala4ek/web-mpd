@@ -1,10 +1,17 @@
 <?php
 
 // Include settings file.
-require_once 'settings.php';
+if (file_exists('settings.php')) {
+  require_once 'settings.php';
+}
+else {
+  throw new Exception('Missing settings file');
+}
 
 /**
  * Render all css files.
+ *
+ * @return string
  */
 function web_mpd_render_css() {
   $css[] = '<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">';
@@ -16,6 +23,8 @@ function web_mpd_render_css() {
 
 /**
  * Render all js files.
+ *
+ * @return string
  */
 function web_mpd_render_js() {
   $js[] = '<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>';
@@ -28,6 +37,8 @@ function web_mpd_render_js() {
 
 /**
  * Render additional head tags files.
+ *
+ * @return string
  */
 function web_mpd_render_metatag() {
   $meta[] = '<link rel="shortcut icon" href="/includes/images/favicon.ico" type="image/x-icon">';
@@ -45,9 +56,15 @@ function web_mpd_render_metatag() {
  */
 function web_mpd_post_handle() {
   if (!empty($_POST['command'])) {
-    !empty($_POST['value'])
-      ? web_mpd_command($_POST['command'], $_POST['value'])
-      : web_mpd_command($_POST['command']);
+    $command = $_POST['command'];
+    if ($command == 'mute') {
+      web_mpd_mute_toggle();
+      exit;
+    }
+
+    isset($_POST['value'])
+      ? web_mpd_command($command, $_POST['value'])
+      : web_mpd_command($command);
   }
   elseif (!empty($_POST['upload_url'])) {
     web_mpd_upload_url($_POST['upload_url']);
@@ -58,12 +75,20 @@ function web_mpd_post_handle() {
  * Callback for handle GET requests.
  */
 function web_mpd_get_handle() {
+  header('Content-Type: application/json');
+  $data = array();
+
   if (isset($_GET['current'])) {
-    print web_mpd_current() . ' (#' . web_mpd_current_track_state() . ')';
+    $data['current'] = web_mpd_current() . ' (#' . web_mpd_current_track_state() . ')';
+    $data['current_id'] = web_mpd_current_id();
   }
-  if (isset($_GET['current_id'])) {
-    print web_mpd_current_id();
+  if (isset($_GET['current_seek'])) {
+    $data['seek']['current'] = web_mpd_seek_get('current');
+    $data['seek']['total'] = web_mpd_seek_get('total');
   }
+
+  print json_encode($data);
+  exit;
 }
 
 /**
@@ -109,6 +134,8 @@ function web_mpd_upload_url($url) {
 
 /**
  * Render playlist.
+ *
+ * @return string
  */
 function web_mpd_render_playlist() {
   $playlist = web_mpd_playlist();
@@ -141,6 +168,8 @@ function web_mpd_render_playlist() {
 
 /**
  * Render control buttons.
+ *
+ * @return string
  */
 function web_mpd_render_buttons() {
   $buttons = array(
@@ -152,7 +181,7 @@ function web_mpd_render_buttons() {
   );
 
   foreach ($buttons as $class => $text) {
-    $list[] = "<button type='button' class='btn btn-default btn-action'><span class='glyphicon glyphicon-$class'></span> $text</button>";
+    $list[] = "<button type='button' class='btn btn-default btn-action' title='$text'><span class='glyphicon glyphicon-$class'></span> $text</button>";
   }
 
   return implode(PHP_EOL, $list) . PHP_EOL;
@@ -160,6 +189,11 @@ function web_mpd_render_buttons() {
 
 /**
  * Execute specific mpc command.
+ *
+ * @param string $command
+ * @param string $arg
+ *
+ * @return string
  */
 function web_mpd_command($command, $arg = '') {
   $result = array();
@@ -170,13 +204,17 @@ function web_mpd_command($command, $arg = '') {
 
 /**
  * Print title of current track.
+ *
+ * @return string
  */
 function web_mpd_current() {
   return web_mpd_command('current');
 }
 
 /**
- * Get current track state (43/152).
+ * Get current track state.
+ *
+ * @return string
  */
 function web_mpd_current_track_state() {
   $status = web_mpd_status();
@@ -188,6 +226,8 @@ function web_mpd_current_track_state() {
 
 /**
  * Get current volume.
+ *
+ * @return int
  */
 function web_mpd_volume_get() {
   $volume = web_mpd_command('volume');
@@ -196,7 +236,34 @@ function web_mpd_volume_get() {
 }
 
 /**
+ * Get seek of current song.
+ *
+ * @param string $type
+ *
+ * @return int
+ */
+function web_mpd_seek_get($type = 'total') {
+  $status = web_mpd_status();
+
+  if (preg_match('/\d+:\d+\/\d+:\d+/', $status, $seeks)) {
+    list($current, $total) = explode('/', $seeks[0]);
+
+    $current = explode(':', $current);
+    $total = explode(':', $total);
+
+    $current = ($current[0] * 60) + $current[1];
+    $total = ($total[0] * 60) + $total[1];
+
+    return $type == 'total' ? $total : $current;
+  }
+
+  return 0;
+}
+
+/**
  * Get mpd status.
+ *
+ * @return string
  */
 function web_mpd_status() {
   return web_mpd_command('status');
@@ -204,25 +271,38 @@ function web_mpd_status() {
 
 /**
  * Check if repeat is enabled.
+ *
+ * @return string
  */
 function web_mpd_is_repeat() {
   return strpos(web_mpd_status(), 'repeat: on') === FALSE ? '' : 'active';
 }
 
-
 /**
  * Check if single is enabled.
+ *
+ * @return string
  */
 function web_mpd_is_single() {
   return strpos(web_mpd_status(), 'single: on') === FALSE ? '' : 'active';
 }
 
-
 /**
  * Check if random is enabled.
+ *
+ * @return string
  */
 function web_mpd_is_random() {
   return strpos(web_mpd_status(), 'random: on') === FALSE ? '' : 'active';
+}
+
+/**
+ * Check if volume is disable.
+ *
+ * @return string
+ */
+function web_mpd_is_mute() {
+  return web_mpd_volume_get() == 0 ? 'active' : '';
 }
 
 /**
@@ -235,8 +315,8 @@ function web_mpd_playlist() {
   $list = explode(PHP_EOL, $list);
 
   $count = count($list);
-  for($i=$count; $i>0; $i--){
-    $list[$i] = $list[$i-1];
+  for($i = $count; $i > 0; $i--){
+    $list[$i] = $list[$i - 1];
   }
   unset($list[0]);
 
@@ -245,6 +325,8 @@ function web_mpd_playlist() {
 
 /**
  * Get current track id.
+ *
+ * @return int
  */
 function web_mpd_current_id() {
   $track_info = reset(explode('/', web_mpd_current_track_state()));
@@ -259,4 +341,16 @@ function web_mpd_update_playlist() {
   web_mpd_command('clear');
   web_mpd_command('update');
   web_mpd_command('ls', '| mpc add');
+}
+
+/**
+ * Toggle the volume muting.
+ */
+function web_mpd_mute_toggle() {
+  if (web_mpd_is_mute()) {
+    web_mpd_command('volume', 50);
+  }
+  else {
+    web_mpd_command('volume', 0);
+  }
 }

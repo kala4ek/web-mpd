@@ -11,8 +11,20 @@ body {
   text-align: right;
 }
 
-#volume {
+.range-inputs {
   margin-top: 20px;
+}
+
+.range-inputs input {
+  display: inline-block;
+}
+
+#seek {
+  width: 69%;
+}
+
+#volume {
+  width: 30%;
 }
 
 .list-group {

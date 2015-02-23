@@ -16,8 +16,7 @@ $(document).ready(function() {
     }
 
     $.post('/backend.php', {command: command});
-    setTimeout('webMpdUpdateTitle()', 500);
-    setTimeout('webMpdUpdatePlaylist()', 500);
+    setTimeout('webMpdUpdateTitlePlaylist()', 500);
   });
 
   // Handle volume change.
@@ -25,8 +24,13 @@ $(document).ready(function() {
     $.post('/backend.php', {command: 'volume', value: $(this).val()});
   });
 
+  // Handle seek change.
+  $('#seek').change(function() {
+    $.post('/backend.php', {command: 'seek', value: $(this).val()});
+  });
+
   // Handle click at settings buttons.
-  $('#repeat, #random, #single').click(function() {
+  $('#repeat, #random, #single, #mute').click(function() {
     var $this = $(this);
     $this.toggleClass('active');
     $.post('/backend.php', {command: $this.attr('id')});
@@ -51,15 +55,17 @@ $(document).ready(function() {
       $this.closest('li').addClass('active');
     }
 
-    setTimeout('webMpdUpdateTitle()', 500);
-    setTimeout('webMpdUpdatePlaylist()', 500);
+    setTimeout('webMpdUpdateTitlePlaylist()', 500);
   });
 
   // Auto-updating current title and playlist every 5 sec.
   setInterval(function() {
-    webMpdUpdateTitle();
-    webMpdUpdatePlaylist();
+    webMpdUpdateTitlePlaylist();
   }, 5000);
+  // Auto-updating seek of current track every sec.
+  setInterval(function() {
+    webMpdUpdateSeek();
+  }, 1000);
 
   // Upload music by files.
   $('#uploader').JSAjaxFileUploader({
@@ -93,23 +99,28 @@ $(document).ready(function() {
 /**
  * Update title of current track.
  */
-function webMpdUpdateTitle() {
+function webMpdUpdateTitlePlaylist() {
   $.get('/backend.php?current', function(data) {
-    $('#current-title').html(data);
+    $('#current-title').html(data.current);
+
+    var $oldActive = $('.playlist ul li.active');
+    $oldActive.removeClass('active');
+    $oldActive.find('button span.glyphicon-pause').removeClass('glyphicon-pause').addClass('glyphicon-play');
+
+    var $newActive = $('button[data-id="' + data.current_id + '"]');
+    $newActive.find('span.glyphicon-play').removeClass('glyphicon-play').addClass('glyphicon-pause');
+    $newActive.closest('li').addClass('active');
   });
 }
 
 /**
- * Update playlist by current track.
+ * Update seek of track.
  */
-function webMpdUpdatePlaylist() {
-  $.get('/backend.php?current_id', function(data) {
-    var $oldActive = $('.playlist ul li.active');
-    $oldActive.removeClass('active');
-    $oldActive.find('button span').removeClass('glyphicon-pause').addClass('glyphicon-play');
+function webMpdUpdateSeek() {
+  $.get('/backend.php?current_seek', function(data) {
+    var $seek = $('#seek');
 
-    var $newActive = $('button[data-id="' + data + '"]');
-    $newActive.find('span').removeClass('glyphicon-play').addClass('glyphicon-pause');
-    $newActive.closest('li').addClass('active');
+    $seek.val(data.seek.current);
+    $seek.attr('max', data.seek.total);
   });
 }
