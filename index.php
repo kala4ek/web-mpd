@@ -31,7 +31,7 @@ require_once 'common.php';
           <button id="mute" type="button" class="btn btn-default <?php print web_mpd_is_mute(); ?>" title="Random"><span class="glyphicon glyphicon-volume-off"></span></button>
         </div>
         <div class="range-inputs">
-          <input id="seek" type="range" value="<?php print web_mpd_seek_get('current'); ?>" min="0" max="<?php print web_mpd_seek_get('total'); ?>" step="1">
+          <input id="seek" type="range" value="<?php print web_mpd_seek_get(WEB_MPD_SEEK_CURRENT); ?>" min="0" max="<?php print web_mpd_seek_get(WEB_MPD_SEEK_TOTAL); ?>" step="1">
           <input id="volume" type="range" value="<?php print web_mpd_volume_get(); ?>" min="0" max="100" step="1">
         </div>
       </div>
