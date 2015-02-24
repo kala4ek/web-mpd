@@ -66,7 +66,7 @@ require_once 'common.php';
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal"> Close</button>
           </div>
         </div>
       </div>

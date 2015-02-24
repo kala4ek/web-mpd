@@ -8,6 +8,21 @@ else {
   throw new Exception('Missing settings file');
 }
 
+// Define commands.
+define('WEB_MPD_MUTE', 'mute');
+define('WEB_MPD_VOLUME', 'volume');
+define('WEB_MPD_PLAY', 'play');
+define('WEB_MPD_STOP', 'stop');
+define('WEB_MPD_PAUSE', 'pause');
+define('WEB_MPD_CURRENT', 'current');
+define('WEB_MPD_STATUS', 'status');
+define('WEB_MPD_PLAYLIST', 'playlist');
+define('WEB_MPD_CLEAR', 'clear');
+define('WEB_MPD_UPDATE', 'update');
+
+define('WEB_MPD_SEEK_CURRENT', 'current');
+define('WEB_MPD_SEEK_TOTAL', 'total');
+
 /**
  * Render all css files.
  *
@@ -57,7 +72,7 @@ function web_mpd_render_metatag() {
 function web_mpd_post_handle() {
   if (!empty($_POST['command'])) {
     $command = $_POST['command'];
-    if ($command == 'mute') {
+    if ($command == WEB_MPD_MUTE) {
       web_mpd_mute_toggle();
       exit;
     }
@@ -83,8 +98,8 @@ function web_mpd_get_handle() {
     $data['current_id'] = web_mpd_current_id();
   }
   if (isset($_GET['current_seek'])) {
-    $data['seek']['current'] = web_mpd_seek_get('current');
-    $data['seek']['total'] = web_mpd_seek_get('total');
+    $data['seek']['current'] = web_mpd_seek_get(WEB_MPD_SEEK_CURRENT);
+    $data['seek']['total'] = web_mpd_seek_get(WEB_MPD_SEEK_TOTAL);
   }
 
   print json_encode($data);
@@ -174,9 +189,9 @@ function web_mpd_render_playlist() {
 function web_mpd_render_buttons() {
   $buttons = array(
     'backward' => 'Previous',
-    'play' => 'Play',
-    'pause' => 'Pause',
-    'stop' => 'Stop',
+    WEB_MPD_PLAY => 'Play',
+    WEB_MPD_PAUSE => 'Pause',
+    WEB_MPD_STOP => 'Stop',
     'forward' => 'Next',
   );
 
@@ -208,7 +223,7 @@ function web_mpd_command($command, $arg = '') {
  * @return string
  */
 function web_mpd_current() {
-  return web_mpd_command('current');
+  return web_mpd_command(WEB_MPD_CURRENT);
 }
 
 /**
@@ -230,7 +245,7 @@ function web_mpd_current_track_state() {
  * @return int
  */
 function web_mpd_volume_get() {
-  $volume = web_mpd_command('volume');
+  $volume = web_mpd_command(WEB_MPD_VOLUME);
 
   return trim(substr($volume, 7), '% ');
 }
@@ -242,7 +257,7 @@ function web_mpd_volume_get() {
  *
  * @return int
  */
-function web_mpd_seek_get($type = 'total') {
+function web_mpd_seek_get($type = WEB_MPD_SEEK_TOTAL) {
   $status = web_mpd_status();
 
   if (preg_match('/\d+:\d+\/\d+:\d+/', $status, $seeks)) {
@@ -254,7 +269,7 @@ function web_mpd_seek_get($type = 'total') {
     $current = ($current[0] * 60) + $current[1];
     $total = ($total[0] * 60) + $total[1];
 
-    return $type == 'total' ? $total : $current;
+    return $type == WEB_MPD_SEEK_TOTAL ? $total : $current;
   }
 
   return 0;
@@ -266,7 +281,7 @@ function web_mpd_seek_get($type = 'total') {
  * @return string
  */
 function web_mpd_status() {
-  return web_mpd_command('status');
+  return web_mpd_command(WEB_MPD_STATUS);
 }
 
 /**
@@ -311,7 +326,7 @@ function web_mpd_is_mute() {
  * @return array.
  */
 function web_mpd_playlist() {
-  $list = web_mpd_command('playlist');
+  $list = web_mpd_command(WEB_MPD_PLAYLIST);
   $list = explode(PHP_EOL, $list);
 
   $count = count($list);
@@ -338,8 +353,8 @@ function web_mpd_current_id() {
  * Add all tracks to playlist.
  */
 function web_mpd_update_playlist() {
-  web_mpd_command('clear');
-  web_mpd_command('update');
+  web_mpd_command(WEB_MPD_CLEAR);
+  web_mpd_command(WEB_MPD_UPDATE);
   web_mpd_command('ls', '| mpc add');
 }
 
@@ -348,9 +363,9 @@ function web_mpd_update_playlist() {
  */
 function web_mpd_mute_toggle() {
   if (web_mpd_is_mute()) {
-    web_mpd_command('volume', 50);
+    web_mpd_command(WEB_MPD_VOLUME, 50);
   }
   else {
-    web_mpd_command('volume', 0);
+    web_mpd_command(WEB_MPD_VOLUME, 0);
   }
 }
